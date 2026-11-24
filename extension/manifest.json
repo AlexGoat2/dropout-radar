@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "Dropout Radar",
+  "version": "0.4.0",
+  "description": "How likely you are to pass this semester, based on your Canvas, Feedpulse and Portflow data.",
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Dropout Radar"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": ["storage"],
+  "host_permissions": ["https://fontysict.instructure.com/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://app.feedpulse.com/*"],
+      "js": ["content/feedpulse.js"],
+      "all_frames": true,
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://portfolio.drieam.app/*"],
+      "js": ["content/portflow-hook.js"],
+      "world": "MAIN",
+      "all_frames": true,
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["https://portfolio.drieam.app/*"],
+      "js": ["content/portflow.js"],
+      "all_frames": true,
+      "run_at": "document_start"
+    }
+  ]
+}

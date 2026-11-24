@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Dropout Radar</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 12 L19 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </span>
+      <div>
+        <h1>Dropout Radar</h1>
+        <p class="sub">Your semester at a glance</p>
+      </div>
+    </div>
+    <button id="refresh" class="icon-btn" title="Refresh" aria-label="Refresh">
+      <svg viewBox="0 0 24 24" width="16" height="16"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </header>
+
+  <section class="card outlook" id="outlook">
+    <div class="outlook-head">
+      <div>
+        <p class="eyebrow">Likelihood to pass</p>
+        <p class="outlook-label" id="outlook-label">Loading…</p>
+      </div>
+      <span class="outlook-value" id="outlook-value"></span>
+    </div>
+    <div class="scale" role="img" id="scale" aria-label="Likelihood to pass">
+      <div class="scale-bar"></div>
+      <div class="scale-dot" id="scale-dot"></div>
+    </div>
+    <div class="scale-legend"><span>At risk</span><span>Likely to pass</span></div>
+    <p class="outlook-summary" id="outlook-summary"></p>
+  </section>
+
+  <section class="card week">
+    <div class="week-row">
+      <span id="week-label">Week – of –</span>
+      <span class="muted" id="phase-name"></span>
+    </div>
+    <div class="track"><div class="track-fill" id="week-fill"></div></div>
+  </section>
+
+  <main>
+    <h2>Parameters</h2>
+    <div id="params"></div>
+  </main>
+
+  <footer class="foot">
+    <span id="synced">Not synced</span>
+    <a id="canvas-link" href="#" target="_blank" rel="noopener">Open Canvas</a>
+  </footer>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>
