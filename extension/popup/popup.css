@@ -126,9 +126,29 @@ h2 {
   margin-bottom: 8px;
 }
 .group-name {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
   font-size: 11px; font-weight: 600; color: var(--muted);
   padding: 7px 10px 0;
 }
+.mini-btn {
+  font-size: 11px; font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 1px 8px;
+  background: var(--card);
+}
+.mini-btn:hover { border-color: var(--accent); }
+.grace { display: flex; align-items: center; gap: 4px; font-weight: 500; }
+.grace select {
+  font: inherit; font-weight: 600; color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0 2px;
+}
+.param.empty { color: var(--muted); font-size: 11px; }
 .param {
   display: flex; justify-content: space-between; align-items: center; gap: 10px;
   padding: 7px 10px;

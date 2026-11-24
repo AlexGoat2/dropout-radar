@@ -157,8 +157,11 @@ export function computeParameters(data, settings = {}) {
   // ---- Assignments: missing / late < 48h / late > 48h / on time ----
   const submittable = data.assignments.filter((a) => a.needsSubmission);
   // Only the categories that actually occur are shown and counted, e.g. no
-  // "late" rows when nothing was handed in late.
-  const due = submittable.filter((a) => a.dueAt && new Date(a.dueAt) < now);
+  // "late" rows when nothing was handed in late. Grace days move every
+  // deadline: with 2, a hand-in up to 2 days late still counts as on time.
+  const graceMs = (Number(settings.graceDays) || 0) * DAY;
+  const deadline = (a) => new Date(a.dueAt).getTime() + graceMs;
+  const due = submittable.filter((a) => a.dueAt && deadline(a) < now);
   const missing = due.filter((a) => !a.submittedAt);
   if (missing.length) {
     add("missing", "Assignments", "Missing", {
@@ -170,7 +173,7 @@ export function computeParameters(data, settings = {}) {
   // Hours late per submission (negative = handed in before the deadline).
   const hoursLate = submittable
     .filter((a) => a.submittedAt && a.dueAt)
-    .map((a) => (new Date(a.submittedAt) - new Date(a.dueAt)) / (60 * 60 * 1000));
+    .map((a) => (new Date(a.submittedAt) - deadline(a)) / (60 * 60 * 1000));
   const total = hoursLate.length;
   const lateShort = hoursLate.filter((h) => h > 0 && h <= 48).length;
   const lateLong = hoursLate.filter((h) => h > 48).length;
@@ -187,7 +190,7 @@ export function computeParameters(data, settings = {}) {
   }
   if (onTime) {
     add("early", "Assignments", "Early", {
-      score: onTime / total, value: `${onTime} of ${total} handed in before the deadline`,
+      score: onTime / total, value: `${onTime} of ${total} handed in on time`,
     });
   }
 

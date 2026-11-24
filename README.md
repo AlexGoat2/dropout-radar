@@ -100,6 +100,6 @@ The weights and scoring rules are in `extension/popup/model.js`. All Canvas call
 3. Pin Dropout Radar from the puzzle-piece menu and click it.
 4. Make sure you're logged in to Canvas. Feedpulse and Portflow sync automatically: when the popup opens and their data is older than 6 hours (or you click refresh), `background.js` opens them in a minimized window, the content scripts read them, and the window closes again.
 
-Attendance can be switched off in the popup, because not every teacher takes attendance. Assignment sub-parameters (missing, late < 48h, late > 48h, early) only count when they apply.
+Attendance can be switched off in the popup, because not every teacher takes attendance. Assignment sub-parameters (missing, late < 48h, late > 48h, early) only count when they apply. The **Grace** selector (0–7 days) moves every deadline, so with 2 a hand-in up to 2 days late still counts as on time. The **Remind** button in the Feedpulse group opens an email to the student's Canvas email address with "Hey <first name>, maybe you should go for a FeedPulse again?".
 
 After editing files, click the reload icon on the extension card.

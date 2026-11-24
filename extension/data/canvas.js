@@ -126,7 +126,11 @@ export async function currentCourses() {
 
 export async function getStudentData() {
   const now = new Date();
-  const [me, courses] = await Promise.all([api("/api/v1/users/self"), currentCourses()]);
+  const [me, profile, courses] = await Promise.all([
+    api("/api/v1/users/self"),
+    api("/api/v1/users/self/profile").catch((e) => (e instanceof NotLoggedInError ? Promise.reject(e) : {})),
+    currentCourses(),
+  ]);
 
   const perCourse = await Promise.all(
     courses.map(async (c) => {
@@ -157,7 +161,12 @@ export async function getStudentData() {
   const { feedpulse = null, portflow = null } = await readSynced();
 
   return {
-    student: { name: me.short_name ?? me.name },
+    student: {
+      name: me.short_name ?? me.name,
+      // "Alexander A.D.J." -> "Alexander"; fall back to the part after the comma in "Last, First".
+      firstName: (me.first_name || me.sortable_name?.split(",")[1] || me.name || "").trim().split(/\s+/)[0],
+      email: profile.primary_email || (profile.login_id?.includes("@") ? profile.login_id : null),
+    },
     courses: courses.map((c) => ({ id: c.id, name: c.course_code || c.name, url: `${CANVAS_URL}/courses/${c.id}` })),
     semester: { name: term?.name ?? "", currentWeek: weekAt(now), totalWeeks },
     assignments: assignments.filter((a) => a.kind !== "attendance"),

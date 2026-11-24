@@ -80,13 +80,35 @@ function paramRow(p) {
     </details>`;
 }
 
-function renderParams(params) {
-  const groups = [...new Set(params.map((p) => p.group))];
+function feedpulseMailto(student) {
+  if (!student?.email) return "";
+  const body = `Hey ${student.firstName || "there"}, maybe you should go for a FeedPulse again?`;
+  const href = `mailto:${student.email}?subject=${encodeURIComponent("FeedPulse")}&body=${encodeURIComponent(body)}`;
+  return `<a class="mini-btn" id="mail-feedpulse" href="${esc(href)}" title="Email ${esc(student.email)}">✉ Remind</a>`;
+}
+
+function graceSelect(settings) {
+  const current = Number(settings.graceDays) || 0;
+  const options = [0, 1, 2, 3, 4, 5, 6, 7]
+    .map((d) => `<option value="${d}" ${d === current ? "selected" : ""}>${d}</option>`)
+    .join("");
+  return `<label class="grace" title="Days a hand-in may be late and still count as on time">
+      Grace <select data-setting="graceDays" aria-label="Grace days after the deadline">${options}</select>
+      ${current === 1 ? "day" : "days"}
+    </label>`;
+}
+
+function renderParams(params, data, settings) {
+  const groups = [...new Set([...params.map((p) => p.group), "Assignments"])];
+  const controls = { Feedpulse: feedpulseMailto(data.student), Assignments: graceSelect(settings) };
   $("params").innerHTML = groups
     .map((g) => {
       const items = params.filter((p) => p.group === g);
-      const name = items.length > 1 || items[0].label !== g ? `<div class="group-name">${esc(g)}</div>` : "";
-      return `<div class="group">${name}${items.map(paramRow).join("")}</div>`;
+      const control = controls[g] ?? "";
+      const showName = control || items.length !== 1 || items[0].label !== g;
+      const name = showName ? `<div class="group-name"><span>${esc(g)}</span>${control}</div>` : "";
+      const rows = items.length ? items.map(paramRow).join("") : `<div class="param empty">Nothing handed in yet</div>`;
+      return `<div class="group">${name}${rows}</div>`;
     })
     .join("");
 }
@@ -158,7 +180,7 @@ function render() {
   const params = computeParameters(current.data, current.settings);
   renderOutlook(params);
   renderWeek(current.data);
-  renderParams(params);
+  renderParams(params, current.data, current.settings);
   renderSynced(current.data);
 }
 
@@ -180,9 +202,18 @@ async function load(forceSync = false) {
 $("params").addEventListener("change", async (e) => {
   const key = e.target.dataset?.setting;
   if (!key || !current) return;
-  current.settings = { ...current.settings, [key]: e.target.checked };
+  const value = e.target.type === "checkbox" ? e.target.checked : Number(e.target.value);
+  current.settings = { ...current.settings, [key]: value };
   render();
   await saveSettings(current.settings);
+});
+
+// mailto links from an extension popup are handed to the mail app via a tab.
+$("params").addEventListener("click", (e) => {
+  const link = e.target.closest?.("#mail-feedpulse");
+  if (!link || !globalThis.chrome?.tabs?.create) return;
+  e.preventDefault();
+  chrome.tabs.create({ url: link.href });
 });
 
 $("canvas-link").href = CANVAS_URL;
