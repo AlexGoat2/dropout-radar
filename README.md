@@ -94,6 +94,18 @@ The extension lives in `extension/`. It reads the student's own data using the b
 
 The weights and scoring rules are in `extension/popup/model.js`. All Canvas calls are in `extension/data/canvas.js`. Only courses whose term includes today are used.
 
+### Privacy & data
+- **No server, no analytics.** Everything runs in the student's own browser. The extension only talks to Canvas, Feedpulse and Portflow, which already hold this data.
+- **Read, not stored:** Canvas courses, assignments and hand-in times, grades and learning-outcome levels, attendance, and the student's name and email. These are loaded fresh every time the popup opens.
+- **Stored in `chrome.storage.local`:**
+  - Feedpulse: checkpoint dates, whether the student wrote a summary, and the smiley.
+  - Portflow: per learning outcome, the evidence count and when evidence was last added.
+  - Settings: attendance on/off, grace days, auto-sync.
+  - Never stored: feedback text, evidence names or files.
+- **Student controls:** the **i** button opens a *Privacy & data* panel that explains this. It has a switch to turn automatic Feedpulse/Portflow syncing off, also enforced in `background.js`, and a **Delete** button that removes the stored summaries while keeping settings. Uninstalling the extension removes everything.
+- **The percentage is an indication, not a decision.** It is calculated from the parameters and weights shown in the popup.
+- **Teacher use:** the extension reads whoever is logged in, so a teacher only sees their own account. Using it to score students (a teacher view, or a Fontys rollout) is profiling of students by the institution. That needs a legal basis, a DPIA and the Fontys privacy officer's involvement before it is built.
+
 **Load it in Chrome**
 1. Go to `chrome://extensions` and turn on **Developer mode**.
 2. Click **Load unpacked** and select the `extension/` folder.

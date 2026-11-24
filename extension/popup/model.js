@@ -74,7 +74,10 @@ export function computeParameters(data, settings = {}) {
   const cps = (data.feedpulse?.checkpoints ?? [])
     .filter((c) => c.date && new Date(c.date) <= now)
     .sort((a, b) => new Date(b.date) - new Date(a.date));
-  const noFeedpulse = { score: null, value: "Not synced yet, syncs automatically" };
+  const notSynced = settings.autoSync === false
+    ? "Not synced, auto-sync is off (see privacy panel)"
+    : "Not synced yet, syncs automatically";
+  const noFeedpulse = { score: null, value: notSynced };
 
   if (cps.length) {
     const withEntry = cps.filter((c) => c.studentEntry);
@@ -121,7 +124,7 @@ export function computeParameters(data, settings = {}) {
     });
   } else {
     add("portfolio", "Portfolio", "Evidence per learning outcome", {
-      score: null, value: "Not synced yet, syncs automatically",
+      score: null, value: notSynced,
     });
   }
 

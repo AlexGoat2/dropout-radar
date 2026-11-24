@@ -67,7 +67,8 @@ async function runSync(wantFeedpulse, wantPortflow) {
 
 async function startSync(force) {
   if (running) return { started: false, running: true };
-  const { feedpulse, portflow } = await chrome.storage.local.get(["feedpulse", "portflow"]);
+  const { feedpulse, portflow, settings } = await chrome.storage.local.get(["feedpulse", "portflow", "settings"]);
+  if (settings?.autoSync === false) return { started: false, disabled: true }; // student switched it off
   const wantFeedpulse = force || isStale(feedpulse?.syncedAt);
   const wantPortflow = force || isStale(portflow?.evidenceSyncedAt) || isStale(portflow?.goalsSyncedAt);
   if (!wantFeedpulse && !wantPortflow) return { started: false };

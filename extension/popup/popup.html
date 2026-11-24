@@ -16,9 +16,14 @@
         <p class="sub">Your semester at a glance</p>
       </div>
     </div>
-    <button id="refresh" class="icon-btn" title="Refresh" aria-label="Refresh">
-      <svg viewBox="0 0 24 24" width="16" height="16"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
+    <div class="top-actions">
+      <button id="privacy-btn" class="icon-btn" title="Privacy & data" aria-label="Privacy and data">
+        <svg viewBox="0 0 24 24" width="16" height="16"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11v6M12 7.5v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <button id="refresh" class="icon-btn" title="Refresh" aria-label="Refresh">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
   </header>
 
   <section class="card outlook" id="outlook">
@@ -49,6 +54,36 @@
     <h2>Parameters</h2>
     <div id="params"></div>
   </main>
+
+  <details class="card privacy" id="privacy">
+    <summary>Privacy &amp; data</summary>
+    <div class="privacy-body">
+      <p><strong>Stays on this computer.</strong> Dropout Radar has no server and no analytics. It only talks to Canvas, Feedpulse and Portflow, which already have your data.</p>
+      <p><strong>Read, not stored:</strong> your Canvas courses, assignments and hand-in times, grades and learning-outcome levels, attendance, and your name and email. These are loaded fresh every time the popup opens.</p>
+      <p><strong>Stored in this browser:</strong> for Feedpulse, the checkpoint dates, whether you wrote a summary and the smiley. For Portflow, per learning outcome how much evidence there is and when it was last added. Your settings are stored too. No feedback text, evidence names or files are stored.</p>
+      <p><strong>The percentage is an indication, not a decision.</strong> It is calculated from the parameters and weights listed above.</p>
+      <p class="privacy-status" id="privacy-status"></p>
+
+      <div class="privacy-row">
+        <div>
+          <div class="param-label">Sync Feedpulse and Portflow automatically</div>
+          <div class="param-value">Opens them in a minimized window when the data is older than 6 hours</div>
+        </div>
+        <label class="switch" title="Sync automatically">
+          <input type="checkbox" id="auto-sync" aria-label="Sync Feedpulse and Portflow automatically">
+          <span></span>
+        </label>
+      </div>
+
+      <div class="privacy-row">
+        <div>
+          <div class="param-label">Delete stored data</div>
+          <div class="param-value">Removes the Feedpulse and Portflow summaries. Your settings are kept.</div>
+        </div>
+        <button class="danger-btn" id="delete-data" type="button">Delete</button>
+      </div>
+    </div>
+  </details>
 
   <footer class="foot">
     <span id="synced">Not synced</span>

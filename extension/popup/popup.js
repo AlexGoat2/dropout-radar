@@ -114,7 +114,7 @@ function renderParams(params, data, settings) {
 }
 
 function renderSynced(data) {
-  if (syncing) {
+  if (syncing && autoSyncOn()) {
     $("synced").textContent = "Syncing Feedpulse and Portflow…";
     return;
   }
@@ -124,7 +124,8 @@ function renderSynced(data) {
     return days === 0 ? new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : `${days}d ago`;
   };
   $("synced").textContent =
-    `Canvas ${ago(data.syncedAt)} · Feedpulse ${ago(data.feedpulse?.syncedAt)} · Portflow ${ago(data.portflow?.evidenceSyncedAt ?? data.portflow?.syncedAt)}`;
+    `Canvas ${ago(data.syncedAt)} · Feedpulse ${ago(data.feedpulse?.syncedAt)} · Portflow ${ago(data.portflow?.evidenceSyncedAt ?? data.portflow?.syncedAt)}` +
+    (autoSyncOn() ? "" : " · auto-sync off");
 }
 
 function renderError(err) {
@@ -156,18 +157,28 @@ async function saveSettings(settings) {
 
 // ---------- Boot ----------
 
+let settings = {};
 let current = null; // { data, settings }
 let syncing = false;
 
-// Ask background.js to refresh Feedpulse + Portflow (only when stale, unless forced).
+const autoSyncOn = () => settings.autoSync !== false;
+
+async function updateSettings(patch) {
+  settings = { ...settings, ...patch };
+  if (current) current.settings = settings;
+  await saveSettings(settings);
+}
+
+// Ask background.js to refresh Feedpulse + Portflow (only when stale, unless
+// forced). Never when the student switched automatic sync off.
 async function requestSync(force) {
-  if (!globalThis.chrome?.runtime?.sendMessage) return;
+  if (!autoSyncOn() || !globalThis.chrome?.runtime?.sendMessage) return;
   const status = await chrome.runtime.sendMessage({ type: "dr-sync", force }).catch(() => null);
   syncing = Boolean(status?.started || status?.running);
   if (current) renderSynced(current.data);
 }
 
-// Re-render as soon as the background sync stores new data.
+// Re-render as soon as the background sync stores (or deletion removes) data.
 globalThis.chrome?.storage?.onChanged?.addListener((changes, area) => {
   if (area !== "local" || !current) return;
   if (changes.feedpulse) current.data.feedpulse = changes.feedpulse.newValue ?? null;
@@ -176,19 +187,70 @@ globalThis.chrome?.storage?.onChanged?.addListener((changes, area) => {
   if (changes.feedpulse || changes.portflow || changes.syncStatus) render();
 });
 
+// ---------- Privacy panel ----------
+
+function renderPrivacy() {
+  $("auto-sync").checked = autoSyncOn();
+  const fp = current?.data.feedpulse?.syncedAt;
+  const pf = current?.data.portflow?.syncedAt;
+  const when = (iso) => new Date(iso).toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  const parts = [fp && `Feedpulse summary from ${when(fp)}`, pf && `Portflow summary from ${when(pf)}`].filter(Boolean);
+  $("privacy-status").textContent = parts.length ? `Stored now: ${parts.join(", ")}.` : "No Feedpulse or Portflow data stored.";
+}
+
+$("privacy-btn").addEventListener("click", () => {
+  const panel = $("privacy");
+  panel.open = !panel.open;
+  if (panel.open) panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+});
+
+$("auto-sync").addEventListener("change", async (e) => {
+  await updateSettings({ autoSync: e.target.checked });
+  if (current) render();
+  if (e.target.checked) requestSync(false);
+});
+
+// Two-step delete: first click asks for confirmation, second click deletes.
+let confirmTimer;
+$("delete-data").addEventListener("click", async (e) => {
+  const btn = e.currentTarget;
+  if (!btn.classList.contains("confirm")) {
+    btn.classList.add("confirm");
+    btn.textContent = "Sure?";
+    confirmTimer = setTimeout(() => { btn.classList.remove("confirm"); btn.textContent = "Delete"; }, 4000);
+    return;
+  }
+  clearTimeout(confirmTimer);
+  if (storage) await storage.remove(["feedpulse", "portflow", "syncStatus"]);
+  if (current) {
+    current.data.feedpulse = null;
+    current.data.portflow = null;
+    render();
+  }
+  btn.classList.remove("confirm");
+  btn.textContent = "Deleted";
+  btn.disabled = true;
+  setTimeout(() => { btn.textContent = "Delete"; btn.disabled = false; }, 2000);
+});
+
+// ---------- Rendering + loading ----------
+
 function render() {
   const params = computeParameters(current.data, current.settings);
   renderOutlook(params);
   renderWeek(current.data);
   renderParams(params, current.data, current.settings);
   renderSynced(current.data);
+  renderPrivacy();
 }
 
 async function load(forceSync = false) {
   $("outlook-label").textContent = "Loading…";
   $("outlook-summary").textContent = "Reading your Canvas data";
+  settings = await loadSettings();
+  renderPrivacy();
   try {
-    const [data, settings] = await Promise.all([getStudentData(), loadSettings()]);
+    const data = await getStudentData();
     document.body.classList.remove("no-data");
     current = { data, settings };
     render();
@@ -203,9 +265,8 @@ $("params").addEventListener("change", async (e) => {
   const key = e.target.dataset?.setting;
   if (!key || !current) return;
   const value = e.target.type === "checkbox" ? e.target.checked : Number(e.target.value);
-  current.settings = { ...current.settings, [key]: value };
+  await updateSettings({ [key]: value });
   render();
-  await saveSettings(current.settings);
 });
 
 // mailto links from an extension popup are handed to the mail app via a tab.
